@@ -10,7 +10,7 @@ public class GroupName
     public GroupName(string value)
     {
         if (string.IsNullOrWhiteSpace(value) || !Regex.IsMatch(value, @"^[A-Za-z]{1}\d{4,6}$"))
-            throw new GroupValidationException("Group name doesn't follow special template");
+            throw new GroupNameValidationException("Group name doesn't follow special template");
         _value = value;
     }
 

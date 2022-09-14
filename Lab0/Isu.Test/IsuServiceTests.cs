@@ -26,6 +26,14 @@ public class IsuServiceTests
     [Fact]
     public void ReachMaxStudentPerGroup_ThrowException()
     {
+        var isu = new IsuService();
+        var group = isu.AddGroup(new GroupName("F34999"));
+        for (int i = 0; i < 40; i++)
+        {
+            isu.AddStudent(group, "Morgenshtern");
+        }
+
+        Assert.Throws<GroupCapacityException>(() => isu.AddStudent(group, "Slava"));
     }
 
     [Fact]
@@ -35,7 +43,7 @@ public class IsuServiceTests
         var isu = new IsuService();
 
         // Act and assert
-        Assert.Throws<GroupValidationException>(() => isu.AddGroup(new GroupName("K70")));
+        Assert.Throws<GroupNameValidationException>(() => isu.AddGroup(new GroupName("K70")));
     }
 
     [Fact]

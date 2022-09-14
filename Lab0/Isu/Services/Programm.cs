@@ -12,7 +12,7 @@ public static class Programm
         var isu = new IsuService();
         var nm = new GroupName("M32111");
         var nm2 = new GroupName("M32101");
-        Group group = isu.AddGroup(nm);
+        Group group = isu.AddGroup(new GroupName("8484848"));
         var group2 = isu.AddGroup(nm2);
         isu.AddStudent(group, "jenny");
         isu.AddStudent(group, "josh");

@@ -1,4 +1,5 @@
 using Isu.Entities;
+using Isu.Exceptions;
 using Isu.Models;
 
 namespace Isu.Services;
@@ -17,6 +18,10 @@ public class IsuService : IIsuService
 
     public Student AddStudent(Group group, string name)
     {
+        if (!_studentsByGroupName.ContainsKey(group))
+            throw new GroupDoesntExistException("Can't add student. Group doesnt exist.");
+        if (_studentsByGroupName[group].Count >= 40)
+            throw new GroupCapacityException("Group has reached maximum of students.");
         int currentStudentId = _nextId++;
         var student = new Student(currentStudentId, name);
         _studentsByGroupName[group].Add(student);
@@ -26,7 +31,7 @@ public class IsuService : IIsuService
     public Student GetStudent(int id)
     {
         return _studentsByGroupName.Values.SelectMany(x => x).SingleOrDefault(student => student.Id == id)
-            ?? throw new Exception("Student with id not found");
+            ?? throw new StudentDoesntExistException("Student with id not found");
     }
 
     public Student FindStudent(int id)
@@ -35,7 +40,7 @@ public class IsuService : IIsuService
         {
             return GetStudent(id);
         }
-        catch (Exception)
+        catch (StudentDoesntExistException)
         {
             return null;
         }
@@ -63,17 +68,9 @@ public class IsuService : IIsuService
 
     public void ChangeStudentGroup(Student student, Group newGroup)
     {
-        try
-        {
-            GetStudent(student.Id);
-        }
-        catch (Exception)
-        {
-            throw new Exception("Can't change student's group. Student not found");
-        }
-
+        GetStudent(student.Id);
         if (FindGroup(newGroup.Name) == null)
-            throw new Exception("Can't change student's group. Group not found");
+            throw new GroupDoesntExistException("Can't change student's group. Group not found");
 
         foreach (Group group in _studentsByGroupName.Keys.Where(group => _studentsByGroupName[group].Contains(student)))
         {
