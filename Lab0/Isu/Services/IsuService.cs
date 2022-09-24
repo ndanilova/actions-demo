@@ -19,12 +19,11 @@ public class IsuService : IIsuService
 
     public Student AddStudent(Group group, string name)
     {
-        if (!_studentsByGroupName.ContainsKey(group))
+        if (!TryFindGroup(group))
             throw new GroupDoesntExistException("Can't add student. Group doesnt exist.");
-        if (_studentsByGroupName[group].Count >= Group.MaxStudentsPerGroup)
+        if (!CheckGroupCapacity(group))
             throw new GroupCapacityException("Group has reached maximum of students.");
-        int currentStudentId = _nextId++;
-        var student = new Student(currentStudentId, name);
+        var student = new Student(_nextId++, name);
         _studentsByGroupName[group].Add(student);
         return student;
     }
@@ -32,7 +31,7 @@ public class IsuService : IIsuService
     public Student GetStudent(int id)
     {
         return _studentsByGroupName.Values.SelectMany(x => x).SingleOrDefault(student => student.Id == id)
-            ?? throw new StudentDoesntExistException("Student with id not found");
+               ?? throw new StudentDoesntExistException("Student with id not found");
     }
 
     public Student FindStudent(int id)
@@ -49,6 +48,8 @@ public class IsuService : IIsuService
 
     public ImmutableArray<Student> FindStudents(GroupName groupName)
     {
+        if (groupName == null)
+            throw new GroupNameValidationException("null argument given for group name");
         var group = _studentsByGroupName.Keys.SingleOrDefault(group => group.Name == groupName);
         var result = _studentsByGroupName[group];
         return result.ToImmutableArray();
@@ -56,22 +57,23 @@ public class IsuService : IIsuService
 
     public ImmutableArray<Student> FindStudents(CourseNumber courseNumber)
     {
-        var result = new List<Student>();
-        foreach (var group in _studentsByGroupName.Keys.Where(group => group.CourseNumber == courseNumber))
-        {
-            result.Concat(_studentsByGroupName[group]).ToList();
-        }
-
+        if (courseNumber == null)
+            throw new CourseNumberValidationException("null argument given for course number");
+        var result = _studentsByGroupName.Keys.Where(group => group.CourseNumber == courseNumber).SelectMany(x => _studentsByGroupName[x]);
         return result.ToImmutableArray();
     }
 
     public Group FindGroup(GroupName groupName)
     {
+        if (groupName == null)
+            throw new GroupNameValidationException("null argument given for group name");
         return _studentsByGroupName.Keys.FirstOrDefault(group => group.Name == groupName);
     }
 
     public ImmutableArray<Group> FindGroups(CourseNumber courseNumber)
     {
+        if (courseNumber == null)
+            throw new CourseNumberValidationException("null argument given for course number");
         var result = _studentsByGroupName.Keys.Where(group => group.CourseNumber.Equals(courseNumber)).ToList();
         return result.ToImmutableArray();
     }
@@ -79,9 +81,9 @@ public class IsuService : IIsuService
     public void ChangeStudentGroup(Student student, Group newGroup)
     {
         GetStudent(student.Id);
-        if (FindGroup(newGroup.Name) == null)
+        if (!TryFindGroup(newGroup))
             throw new GroupDoesntExistException("Can't change student's group. Group not found");
-        if (_studentsByGroupName[newGroup].Count >= Group.MaxStudentsPerGroup)
+        if (!CheckGroupCapacity(newGroup))
             throw new GroupCapacityException("new group has reached maximum of students.");
 
         foreach (Group group in _studentsByGroupName.Keys)
@@ -90,5 +92,15 @@ public class IsuService : IIsuService
             _studentsByGroupName[newGroup].Add(student);
             _studentsByGroupName[group].Remove(student);
         }
+    }
+
+    private bool TryFindGroup(Group group)
+    {
+        return _studentsByGroupName.ContainsKey(group);
+    }
+
+    private bool CheckGroupCapacity(Group group)
+    {
+        return _studentsByGroupName[group].Count < Group.MaxStudentsPerGroup;
     }
 }

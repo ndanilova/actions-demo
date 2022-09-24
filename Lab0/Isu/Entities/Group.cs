@@ -1,4 +1,5 @@
 using Isu.Models;
+using static System.Int32;
 
 namespace Isu.Entities;
 
@@ -8,8 +9,9 @@ public class Group
     public Group(GroupName value)
     {
         Name = value;
-        CourseNumber = new CourseNumber(Name.ToString()[2] - '0');
-    }
+        TryParse(value.ToString()[2].ToString(), out int parseResult);
+        CourseNumber = new CourseNumber(parseResult);
+        }
 
     public GroupName Name { get; }
     public CourseNumber CourseNumber { get; }

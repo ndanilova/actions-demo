@@ -9,11 +9,12 @@ public class GroupName
 
     public GroupName(string value)
     {
-        if (string.IsNullOrWhiteSpace(value) || !Regex.IsMatch(value, @"^[A-Za-z]{1}\d{4,6}$"))
+        if (string.IsNullOrWhiteSpace(value) || !ValidGroupName.IsMatch(value))
             throw new GroupNameValidationException("Group name doesn't follow special template");
         _value = value;
     }
 
+    private static Regex ValidGroupName => new (@"^[A-Za-z]{1}\d{4,6}$", RegexOptions.Compiled);
     public override string ToString()
     {
         return _value;
