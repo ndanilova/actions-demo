@@ -5,14 +5,19 @@ namespace Isu.Entities;
 
 public class Student
 {
+    private const string IdPattern = @"^[1-9]\d{5}$";
+    private const string NamePattern = @"^[A-Z][A-Za-z]+";
+
     public Student(int id, string name)
     {
-        if (!Regex.IsMatch(id.ToString(), @"^[1-9]\d{5}$"))
+        Match matchId = Regex.Match(id.ToString(), IdPattern);
+        Match matchName = Regex.Match(name, NamePattern);
+        if (!matchId.Success)
         {
             throw new StudentValidationException("Id is not valid");
         }
 
-        if (string.IsNullOrWhiteSpace(name) || !Regex.IsMatch(name, @"^[A-Z][A-Za-z]+"))
+        if (!matchName.Success)
         {
             throw new Exception("name is not valid");
         }
@@ -21,6 +26,6 @@ public class Student
         Name = name;
     }
 
-    public int Id { get; init; }
-    public string Name { get; init; }
+    public int Id { get;  }
+    public string Name { get;  }
 }

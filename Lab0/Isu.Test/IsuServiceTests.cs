@@ -3,64 +3,58 @@ using Isu.Exceptions;
 using Isu.Models;
 using Isu.Services;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Isu.Test;
 
 public class IsuServiceTests
 {
+    private readonly IsuService _isu = new IsuService();
     [Fact]
     public void AddStudentToGroup_StudentHasGroupAndGroupContainsStudent()
     {
         // Arrange
-        var isu = new IsuService();
-        var group = isu.AddGroup(new GroupName("M32111"));
+        var group = _isu.AddGroup(new GroupName("M32111"));
 
         // Act
-        var student = isu.AddStudent(group, "Vasily");
+        var student = _isu.AddStudent(group, "Vasily");
 
         // Assert
-        Assert.Equal(isu.FindStudent(student.Id), student);
+        Assert.Equal(_isu.FindStudent(student.Id), student);
     }
 
     [Fact]
     public void ReachMaxStudentPerGroup_ThrowException()
     {
         // Arrange
-        var isu = new IsuService();
-        var group = isu.AddGroup(new GroupName("F34999"));
-        for (int i = 0; i < 40; i++)
+        var group = _isu.AddGroup(new GroupName("F34999"));
+        for (int i = 0; i < Group.MaxStudentsPerGroup; i++)
         {
-            isu.AddStudent(group, "Morgenshtern");
+            _isu.AddStudent(group, "Morgenshtern");
         }
 
         // Act and Assert
-        Assert.Throws<GroupCapacityException>(() => isu.AddStudent(group, "Slava"));
+        Assert.Throws<GroupCapacityException>(() => _isu.AddStudent(group, "Slava"));
     }
 
     [Fact]
     public void CreateGroupWithInvalidName_ThrowException()
     {
-        // Arrange
-        var isu = new IsuService();
-
         // Act and assert
-        Assert.Throws<GroupNameValidationException>(() => isu.AddGroup(new GroupName("K70")));
+        Assert.Throws<GroupNameValidationException>(() => _isu.AddGroup(new GroupName("K70")));
     }
 
     [Fact]
     public void TransferStudentToAnotherGroup_GroupChanged()
     {
         // Arrange
-        var isu = new IsuService();
-        var groupPrevious = isu.AddGroup(new GroupName("P32949"));
-        var groupNew = isu.AddGroup(new GroupName("K31450"));
-        var student = isu.AddStudent(groupPrevious, "Vasily");
+        var groupPrevious = _isu.AddGroup(new GroupName("P32949"));
+        var groupNew = _isu.AddGroup(new GroupName("K31450"));
+        var student = _isu.AddStudent(groupPrevious, "Vasily");
 
         // Act
-        isu.ChangeStudentGroup(student, groupNew);
+        _isu.ChangeStudentGroup(student, groupNew);
 
         // Assert
-        Assert.Contains(isu.FindStudents(groupNew.Name), student1 => student1 == student);
+        Assert.Contains(_isu.FindStudents(groupNew.Name), student1 => student1 == student);
     }
 }

@@ -4,14 +4,16 @@ namespace Isu.Models;
 
 public class CourseNumber
 {
+    private const int MaxNumberOfCourse = 4;
+    private const int MinNumberOfCourse = 1;
     public CourseNumber(int number)
     {
-        if (number is < 1 or > 4)
+        if (number is < MinNumberOfCourse or > MaxNumberOfCourse)
             throw new CourseNumberValidationException("Course number should be between 1 and 4");
         Number = number;
     }
 
-    private int Number { get; init; }
+    private int Number { get; }
 
     public bool Equals(CourseNumber other)
     {

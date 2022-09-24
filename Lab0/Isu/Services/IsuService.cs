@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Isu.Entities;
 using Isu.Exceptions;
 using Isu.Models;
@@ -20,7 +21,7 @@ public class IsuService : IIsuService
     {
         if (!_studentsByGroupName.ContainsKey(group))
             throw new GroupDoesntExistException("Can't add student. Group doesnt exist.");
-        if (_studentsByGroupName[group].Count >= 40)
+        if (_studentsByGroupName[group].Count >= Group.MaxStudentsPerGroup)
             throw new GroupCapacityException("Group has reached maximum of students.");
         int currentStudentId = _nextId++;
         var student = new Student(currentStudentId, name);
@@ -46,14 +47,22 @@ public class IsuService : IIsuService
         }
     }
 
-    public List<Student> FindStudents(GroupName groupName)
+    public ImmutableArray<Student> FindStudents(GroupName groupName)
     {
-        return _studentsByGroupName.Keys.Where(group => group.Name == groupName).Select(group => _studentsByGroupName[group]).FirstOrDefault();
+        var group = _studentsByGroupName.Keys.SingleOrDefault(group => group.Name == groupName);
+        var result = _studentsByGroupName[group];
+        return result.ToImmutableArray();
     }
 
-    public List<Student> FindStudents(CourseNumber courseNumber)
+    public ImmutableArray<Student> FindStudents(CourseNumber courseNumber)
     {
-        return (from @group in _studentsByGroupName.Keys let charNumber = @group.Name.ToString()[2] let number = charNumber - '0' where new CourseNumber(number).Equals(courseNumber) from student in _studentsByGroupName[@group] select student).ToList();
+        var result = new List<Student>();
+        foreach (var group in _studentsByGroupName.Keys.Where(group => group.CourseNumber == courseNumber))
+        {
+            result.Concat(_studentsByGroupName[group]).ToList();
+        }
+
+        return result.ToImmutableArray();
     }
 
     public Group FindGroup(GroupName groupName)
@@ -61,9 +70,10 @@ public class IsuService : IIsuService
         return _studentsByGroupName.Keys.FirstOrDefault(group => group.Name == groupName);
     }
 
-    public List<Group> FindGroups(CourseNumber courseNumber)
+    public ImmutableArray<Group> FindGroups(CourseNumber courseNumber)
     {
-        return _studentsByGroupName.Keys.Where(group => group.CourseNumber.Equals(courseNumber)).ToList();
+        var result = _studentsByGroupName.Keys.Where(group => group.CourseNumber.Equals(courseNumber)).ToList();
+        return result.ToImmutableArray();
     }
 
     public void ChangeStudentGroup(Student student, Group newGroup)
@@ -71,11 +81,14 @@ public class IsuService : IIsuService
         GetStudent(student.Id);
         if (FindGroup(newGroup.Name) == null)
             throw new GroupDoesntExistException("Can't change student's group. Group not found");
+        if (_studentsByGroupName[newGroup].Count >= Group.MaxStudentsPerGroup)
+            throw new GroupCapacityException("new group has reached maximum of students.");
 
-        foreach (Group group in _studentsByGroupName.Keys.Where(group => _studentsByGroupName[group].Contains(student)))
+        foreach (Group group in _studentsByGroupName.Keys)
         {
-            _studentsByGroupName[group].Remove(student);
+            if (!_studentsByGroupName[group].Contains(student)) continue;
             _studentsByGroupName[newGroup].Add(student);
+            _studentsByGroupName[group].Remove(student);
         }
     }
 }
