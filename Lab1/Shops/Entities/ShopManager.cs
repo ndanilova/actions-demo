@@ -38,27 +38,28 @@ public class ShopManager
 
     public Shop GetShopWithCheapestSetOfProducts(params BatchOfGoods[] batchOfGoodsArray)
     {
-        int minPrice = int.MaxValue;
+        int? minPrice = null;
         Shop result = null;
         foreach (var shop in _shopsByShopId.Values)
         {
-            bool doesShopSuit = false;
+            bool doesShopSuit = true;
             for (int i = 0; i < batchOfGoodsArray.Length; i++)
             {
                 if (shop.FindProduct(batchOfGoodsArray[i].ProductId).ProductNumber < batchOfGoodsArray[i].ProductNumber)
-                    doesShopSuit = true;
+                    doesShopSuit = false;
             }
 
-            if (doesShopSuit)
+            if (!doesShopSuit)
             {
-                doesShopSuit = false;
                 continue;
             }
 
             int shopPrice = batchOfGoodsArray.Sum(batch => shop.FindProduct(batch.ProductId).Price * batch.ProductNumber);
-            if (shopPrice > minPrice) continue;
-            minPrice = shopPrice;
-            result = shop;
+            if (!minPrice.HasValue || minPrice > shopPrice)
+            {
+                minPrice = shopPrice;
+                result = shop;
+            }
         }
 
         return result;
