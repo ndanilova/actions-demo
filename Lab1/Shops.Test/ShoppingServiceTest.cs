@@ -101,4 +101,42 @@ public class ShoppingServiceTest
 
         Assert.Throws<ShopException>(() => target.MakePurchase(person, 1, 20));
     }
+
+    [Fact]
+
+    public void FindShopWithCheapestProductSet_ShopWasFound()
+    {
+        var target = _shopManager.CreateShop("Target", "Homan Ave", 2126);
+        var magnit = _shopManager.CreateShop("Magnit", "Pobedy", 5);
+        var diksi = _shopManager.CreateShop("Diksi", "Lenina", 40);
+        var productBread = _shopManager.RegisterProduct("Bread", 30);
+        var productMilk = _shopManager.RegisterProduct("Milk", 100);
+        var productOliveOil = _shopManager.RegisterProduct("Olive oil", 300);
+        diksi.MakeSupply(new SupplyData(1, 60, 40), new SupplyData(2, 10, 40), new SupplyData(3, 15, 40));
+        magnit.MakeSupply(new SupplyData(1, 20, 40), new SupplyData(2, 20, 40), new SupplyData(3, 200, 40));
+        target.MakeSupply(new SupplyData(1, 100, 40), new SupplyData(2, 200, 40), new SupplyData(3, 20, 40));
+
+        var shop = _shopManager.GetShopWithCheapestSetOfProducts(new BatchOfGoods(1, 15), new BatchOfGoods(2, 7), new BatchOfGoods(3, 6));
+
+        Assert.Equal(diksi, shop);
+    }
+
+    [Fact]
+
+    public void FindShopWithCheapestProductSetButWithLackOfProducts_ReturnOtherShop()
+    {
+        var target = _shopManager.CreateShop("Target", "Homan Ave", 2126);
+        var magnit = _shopManager.CreateShop("Magnit", "Pobedy", 5);
+        var diksi = _shopManager.CreateShop("Diksi", "Lenina", 40);
+        var productBread = _shopManager.RegisterProduct("Bread", 30);
+        var productMilk = _shopManager.RegisterProduct("Milk", 100);
+        var productOliveOil = _shopManager.RegisterProduct("Olive oil", 300);
+        diksi.MakeSupply(new SupplyData(1, 60, 40), new SupplyData(2, 10, 40), new SupplyData(3, 15, 40));
+        magnit.MakeSupply(new SupplyData(1, 20, 400), new SupplyData(2, 20, 40), new SupplyData(3, 200, 40));
+        target.MakeSupply(new SupplyData(1, 100, 400), new SupplyData(2, 200, 40), new SupplyData(3, 20, 40));
+
+        var shop = _shopManager.GetShopWithCheapestSetOfProducts(new BatchOfGoods(1, 115), new BatchOfGoods(2, 7), new BatchOfGoods(3, 6));
+
+        Assert.Equal(magnit, shop);
+    }
 }

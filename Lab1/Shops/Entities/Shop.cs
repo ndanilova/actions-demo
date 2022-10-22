@@ -6,6 +6,12 @@ public class Shop
 {
     public Shop(string name, int id, string street, int buildingNumber)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            ShopManagerException.InvalidShopName();
+        if (string.IsNullOrWhiteSpace(street))
+            ShopManagerException.InvalidStreet();
+        if (buildingNumber <= 0)
+            ShopManagerException.InvalidBuildingNumber();
         Id = id;
         Street = street;
         BuildingNumber = buildingNumber;
@@ -15,8 +21,7 @@ public class Shop
 
     public int Id { get;  }
     public string Name { get; }
-    public int Revenue
-    { get; private set; }
+    public int Revenue { get; private set; }
 
     public string FullAddress => $"{Street}, {BuildingNumber}";
     private string Street { get; }

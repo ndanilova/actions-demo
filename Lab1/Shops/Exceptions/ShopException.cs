@@ -2,7 +2,7 @@ namespace Shops.Exceptions;
 
 public class ShopException : Exception
 {
-    private ShopException(string message)
+    public ShopException(string message)
         : base(message)
     {
     }

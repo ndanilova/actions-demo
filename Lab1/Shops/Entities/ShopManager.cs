@@ -36,6 +36,34 @@ public class ShopManager
         return product;
     }
 
+    public Shop GetShopWithCheapestSetOfProducts(params BatchOfGoods[] batchOfGoodsArray)
+    {
+        int minPrice = int.MaxValue;
+        Shop result = null;
+        foreach (var shop in _shopsByShopId.Values)
+        {
+            bool doesShopSuit = false;
+            for (int i = 0; i < batchOfGoodsArray.Length; i++)
+            {
+                if (shop.FindProduct(batchOfGoodsArray[i].ProductId).ProductNumber < batchOfGoodsArray[i].ProductNumber)
+                    doesShopSuit = true;
+            }
+
+            if (doesShopSuit)
+            {
+                doesShopSuit = false;
+                continue;
+            }
+
+            int shopPrice = batchOfGoodsArray.Sum(batch => shop.FindProduct(batch.ProductId).Price * batch.ProductNumber);
+            if (shopPrice >= minPrice) continue;
+            minPrice = shopPrice;
+            result = shop;
+        }
+
+        return result;
+    }
+
     public Shop GetShopWithCheapestProduct(int productId)
     {
         if (_shopsByShopId.Count == 0)
