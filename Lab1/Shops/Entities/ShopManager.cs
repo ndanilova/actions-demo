@@ -38,7 +38,7 @@ public class ShopManager
 
     public Shop GetShopWithCheapestSetOfProducts(params BatchOfGoods[] batchOfGoodsArray)
     {
-        int minPrice = int.MaxValue;
+        int? minPrice = null;
         Shop result = null;
         foreach (var shop in _shopsByShopId.Values)
         {
@@ -56,7 +56,7 @@ public class ShopManager
             }
 
             int shopPrice = batchOfGoodsArray.Sum(batch => shop.FindProduct(batch.ProductId).Price * batch.ProductNumber);
-            if (shopPrice >= minPrice) continue;
+            if (shopPrice >= minPrice && minPrice > 0) continue;
             minPrice = shopPrice;
             result = shop;
         }

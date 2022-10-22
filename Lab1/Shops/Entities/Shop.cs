@@ -89,7 +89,8 @@ public class Shop
     {
         if (!TryFindProduct(productId))
             ShopException.WrongId(productId);
-        return ProductByProductId[productId];
+        var result = ProductByProductId[productId];
+        return new Product(result.ProductName, result.Id, result.Price);
     }
 
     private void MakeSupply(int productId, int number, int price)
